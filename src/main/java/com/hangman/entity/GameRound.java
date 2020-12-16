@@ -30,7 +30,9 @@ public class GameRound {
 	
 	/** Letras usadas por el usuario */
 	private LinkedHashSet<Character> letters = new LinkedHashSet<Character>();
-//	private ArrayList<Character> letters = new ArrayList<Character>();
+
+	/** Palabras usadas por el usuario */
+	private LinkedHashSet<String> words = new LinkedHashSet<String>();
 	
 	/** Mensaje informativo de cada ronda */
 	private String roundMessage;
@@ -43,7 +45,7 @@ public class GameRound {
 	}
 	
 //	public GameRound(Word wordInProcessToGuess, int lives, int mistakes, int hits, int attempts,
-//			ArrayList<Character> letters, String roundMessage) {
+//			LinkedHashSet<Character> letters, String roundMessage) {
 //		super();
 //		this.wordInProcessToGuess = wordInProcessToGuess;
 //		this.lives = lives;
@@ -53,8 +55,9 @@ public class GameRound {
 //		this.letters = letters;
 //		this.roundMessage = roundMessage;
 //	}
+	
 	public GameRound(Word wordInProcessToGuess, int lives, int mistakes, int hits, int attempts,
-			LinkedHashSet<Character> letters, String roundMessage) {
+			LinkedHashSet<Character> letters, LinkedHashSet<String> words, String roundMessage) {
 		super();
 		this.wordInProcessToGuess = wordInProcessToGuess;
 		this.lives = lives;
@@ -62,8 +65,12 @@ public class GameRound {
 		this.hits = hits;
 		this.attempts = attempts;
 		this.letters = letters;
+		this.words = words;
 		this.roundMessage = roundMessage;
 	}
+
+	
+	
 
 
 	
@@ -180,6 +187,15 @@ public class GameRound {
 	public void setRoundMessage(String roundMessage) {
 		this.roundMessage = roundMessage;
 	}
+	
+	public LinkedHashSet<String> getWords() {
+		return words;
+	}
+
+	public void setWords(LinkedHashSet<String> words) {
+		this.words = words;
+	}
+
 
 	
 	

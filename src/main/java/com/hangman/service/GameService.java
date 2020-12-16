@@ -181,8 +181,7 @@ public class GameService {
 
 			// Se guarda el resultado (información de la ronda)
 			result = new GameRound(game.getWordInProcessToGuess(), game.getLives(), game.getMistakes(), game.getHits(),
-					game.getAttempts(), game.getLetters(), game.getRoundMessage());
-
+					game.getAttempts(), game.getLetters(), game.getWords(), game.getRoundMessage());
 		}
 
 		return result;
@@ -232,7 +231,7 @@ public class GameService {
 	 * @return boolean
 	 * @throws Exception 
 	 */
-	public GameRound makeAttempt(String username, Long idGame, Character letter, String ip) throws Exception {
+	public GameRound makeLetterAttempt(String username, Long idGame, Character letter, String ip) throws Exception {
 		
 		// Se limpia la letra, quitando acentos o mayúsculas
 		letter = cleanString(letter.toString()).charAt(0);
@@ -245,8 +244,9 @@ public class GameService {
 		
 		
 		// Método que realiza las comprobaciones necesarias
-		attemptChecks(game, player, letter, ip);
-		
+		attemptChecks(game, player, ip);
+		letterAttemptChecks(game, letter);
+
 		
 		if (gameCanContinue(game)) {
 			
@@ -305,7 +305,79 @@ public class GameService {
 		// DTO. Resultado de la ronda
 		GameRound gameRound = new GameRound(game.getWordInProcessToGuess(), 
 				game.getLives(), game.getMistakes(), game.getHits(), 
-				game.getAttempts(), game.getLetters(), game.getRoundMessage());
+				game.getAttempts(), game.getLetters(), game.getWords(), game.getRoundMessage());
+		
+		// Se devuelve el resultado de la ronda
+		return gameRound;
+	}
+	
+	
+	/**
+	 * Método que realiza un intento para buscar la palabra, indicando una letra
+	 * 
+	 * @param game
+	 * @param letter
+	 * @return boolean
+	 * @throws Exception 
+	 */
+	public GameRound makeWordAttempt(String username, Long idGame, String word, String ip) throws Exception {
+		
+		// Se limpia la palabra, quitando acentos o mayúsculas
+		word = cleanString(word);
+				
+		// Se busca y guarda la partida
+		Game game = gameRepo.findGameById(idGame);
+		
+		// Se busca y guarda el jugador
+		Player player = playerRepo.findPlayerByUsername(username);
+		
+		
+		// Método que realiza las comprobaciones necesarias
+		attemptChecks(game, player, ip);
+		wordAttemptChecks(game, word);
+		
+		if (gameCanContinue(game)) {
+			
+			// Se suma un intento
+			game.setAttempts(game.getAttempts() + 1);
+			
+			// Se obtienen las palabras de la partida
+			Word wordToGuess = game.getWordToGuess();
+			Word wordInProcessToGuess = game.getWordInProcessToGuess();
+			
+			// Se registra la palbra en la lista de palabras usadas por el jugador.
+			game.addWordToList(word);		
+			
+			// Si la palabra para adivinar coincide con la palabra pasada por parámetro...
+			if (wordToGuess.getWord().equals(word)) {
+				
+				// Se modifica la palabra para adivinar, cambiándola por la cadena auxiliar.
+				wordInProcessToGuess.setWord(word);
+								
+				// Se establece el estado de la ronda (ganada)
+				game.setStatus(GameStatus.VICTORY);
+				
+				// Se indica mensaje correspondiente
+				game.setRoundMessage("HAS GANADO!!!");
+
+				
+			// Si la palabra para adivinar NO contiene la letra pasada por parámetro...
+			} else {
+				
+				// Se establece el estado de la ronda (perdida o fallo), según estado de la palabra en proceso
+				setStatusMissOrGameOver(game);
+				
+			}
+			
+			// Se guarda la partida en BBDD
+			gameRepo.save(game);
+			
+		} 
+		
+		// DTO. Resultado de la ronda
+		GameRound gameRound = new GameRound(game.getWordInProcessToGuess(), 
+				game.getLives(), game.getMistakes(), game.getHits(), 
+				game.getAttempts(), game.getLetters(), game.getWords(), game.getRoundMessage());
 		
 		// Se devuelve el resultado de la ronda
 		return gameRound;
@@ -331,7 +403,7 @@ public class GameService {
 	}
 	
 	
-	public void attemptChecks(Game game, Player player, Character letter, String ip) throws Exception {
+	public void attemptChecks(Game game, Player player, String ip) throws Exception {
 		
 		// Si no se encuentra la partida, se muestra excepción
 		if (game == null) {
@@ -352,7 +424,11 @@ public class GameService {
 		if (!ip.equals(player.getIp())) {
 			throw new Exception("ERROR. No puedes acceder a esta partida.");
 		}
-				
+		
+	}
+	
+	public void letterAttemptChecks(Game game, Character letter) throws Exception {
+					
 		// Se controla que solo pueda insertar letras (no números ni caracteres especiales)
 		if (!Character.isLetter(letter)) {
 			throw new Exception("ERROR. No has introducido una letra, vuelve a intentarlo.");
@@ -364,6 +440,24 @@ public class GameService {
 		}
 		
 	}
+	
+	public void wordAttemptChecks(Game game, String word) throws Exception {
+		
+		// Se controla que solo pueda insertar letras en la palabra (no números ni caracteres especiales)
+		for (int i = 0; i < word.length(); i++) {
+			if (!Character.isLetter(word.charAt(i))) {
+				throw new Exception("ERROR. No has introducido una palabra, vuelve a intentarlo.");
+			}
+		}
+		
+		// Se controla si la letra se ha usado en algún turno anterior
+		if (game.getWords().contains(word)) {
+			throw new Exception("ERROR. Ya has introducido la palabra '" + word + "', inténtalo de nuevo");
+		}
+		
+	}
+
+
 	
 	public boolean gameCanContinue(Game game) {
 		boolean result = false;
@@ -418,38 +512,11 @@ public class GameService {
 			game.setStatus(GameStatus.MISS);
 			
 			// Se indica mensaje correspondiente
-			game.setRoundMessage("Mala suerte, esa letra no existe...");
+			game.setRoundMessage("Mala suerte, no has acertado...");
 		}
 		
 	}
 	
-//	public String formatWordInProcessToGuess(Word wordToGuess, Word wordInProcessToGuess, Character letter) {
-//
-//		// Se crea una cadena auxiliar, partiendo de la palabra en proceso.
-//		StringBuilder auxWordInProcess = new StringBuilder(wordInProcessToGuess.getWord());
-//
-//		// Si la palabra para adivinar contiene la letra pasada por parámetro...
-//		if (wordToGuess.getWord().contains(letter.toString())) {
-//
-//			// Se recorre la palabra
-//			for (int i = 0; i < wordToGuess.getWord().length(); i++) {
-//
-//				// Se guarda la letra recorrida
-//				Character letterInWord = wordToGuess.getWord().charAt(i);
-//
-//				// Si la letra recorrida coincide con la letra pasada por parámetro
-//				if (letterInWord.equals(letter)) {
-//
-//					// Se modifica la cadena auxiliar.
-//					// (se cambia letra de posición recorrida por letra pasada por parámetro).
-//					auxWordInProcess.setCharAt(i, letter);
-//				}
-//			}
-//		}
-//		
-//		return auxWordInProcess.toString();
-//	}
-
 	
 	
 	

@@ -51,9 +51,10 @@ public class Game {
 	private int attempts;
 	
 	/** Letras usadas por el usuario */
-//	private ArrayList<Character> letters = new ArrayList<Character>();
 	private LinkedHashSet<Character> letters = new LinkedHashSet<Character>();
 
+	/** Palabras usadas por el usuario */
+	private LinkedHashSet<String> words = new LinkedHashSet<String>();
 	
 	/** Mensaje informativo de cada ronda */
 	private String roundMessage;
@@ -185,6 +186,15 @@ public class Game {
 	public void setRoundMessage(String roundMessage) {
 		this.roundMessage = roundMessage;
 	}
+	
+	public LinkedHashSet<String> getWords() {
+		return words;
+	}
+
+	public void setWords(LinkedHashSet<String> words) {
+		this.words = words;
+	}
+
 
 	
 	
@@ -200,6 +210,11 @@ public class Game {
 	public void addLetterToList(Character letter) {
 		this.letters.add(letter);
 	}
+	
+	public void addWordToList(String word) {
+		this.words.add(word);
+	}
+
 
 	
 	

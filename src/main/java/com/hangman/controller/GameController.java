@@ -40,7 +40,7 @@ public class GameController {
 	 * @throws Exception 
 	 */
 	@GetMapping("/attempt/{user}/{idGame}/{letter}")
-	public ResponseEntity<?> makeUserAttempt(@PathVariable String user, @PathVariable Long idGame
+	public ResponseEntity<?> makeUserLetterAttempt(@PathVariable String user, @PathVariable Long idGame
 			, @PathVariable Character letter, HttpServletRequest request) {
 
 		String ip = request.getRemoteAddr();
@@ -49,7 +49,7 @@ public class GameController {
 
 		GameRound gameRound = null;
 		try {
-			gameRound = gameService.makeAttempt(user, idGame, letter, ip);
+			gameRound = gameService.makeLetterAttempt(user, idGame, letter, ip);
 		} catch (Exception e) {
 			String error = e.getMessage();
 			response = ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -92,6 +92,40 @@ public class GameController {
 //
 //		return response;
 //	}
+
+	
+	
+	/**
+	 * Método que realiza intento para buscar la palabra oculta, indicando palabra.
+	 * 
+	 * @param user
+	 * @param idGame
+	 * @param letter
+	 * @return ResponseEntity<?>
+	 * @throws Exception 
+	 */
+	@GetMapping("/attempt/{user}/{idGame}/word/{word}")
+	public ResponseEntity<?> makeUserWordAttempt(@PathVariable String user, @PathVariable Long idGame
+			, @PathVariable String word, HttpServletRequest request) {
+
+		String ip = request.getRemoteAddr();
+		
+		ResponseEntity<?> response = null;		
+
+		GameRound gameRound = null;
+		try {
+			gameRound = gameService.makeWordAttempt(user, idGame, word, ip);
+		} catch (Exception e) {
+			String error = e.getMessage();
+			response = ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+		}
+		
+		if (gameRound != null) {
+			response = ResponseEntity.status(HttpStatus.OK).body(gameRound);
+		}
+
+		return response;
+	}
 
 
 	

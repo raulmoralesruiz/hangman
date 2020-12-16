@@ -13,6 +13,11 @@ public class PlayerService {
 	@Autowired
 	private PlayerRepository playerRepo;
 	
+	//  ----------------- TEST -----------------
+	public PlayerService(PlayerRepository playerRepo) {
+		this.playerRepo = playerRepo;
+	}
+	
 	
 	// ----- GET -----
 

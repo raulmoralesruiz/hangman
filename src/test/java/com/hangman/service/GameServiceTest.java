@@ -8,7 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.hangman.entity.Game;
+import com.hangman.entity.GameStatus;
+import com.hangman.entity.Player;
+import com.hangman.entity.Word;
 import com.hangman.repository.GameRepository;
+import com.hangman.repository.PlayerRepository;
 
 
 //@SpringBootTest
@@ -19,12 +23,19 @@ public class GameServiceTest {
 	
 	private GameRepository mockedGameRepo;
 	Game mockedGame;
+	
+	private PlayerRepository mockedPlayerRepo;
+	Player mockedPlayer;
+
 
 	
 	@BeforeEach
 	private void init() {
 		mockedGameRepo = mock(GameRepository.class);
 		mockedGame = mock(Game.class);
+		
+		mockedPlayerRepo = mock(PlayerRepository.class);
+		mockedPlayer = mock(Player.class);
 		
 		sut = new GameService(mockedGameRepo);
 	}
@@ -46,89 +57,82 @@ public class GameServiceTest {
 		assert (game == mockedGame);
 	}
 	
+
+	
+	@Test
+	public void cleanStringTest() {
+		// Se crea palabra
+		String word = "árbol";
+		
+		// Se "limpia" la palabra
+		String cleanWord = sut.cleanString(word);
+		
+		// Se comprueba si realmente se ha "limpiado"
+		assert(cleanWord.equals("arbol"));
+	}
+	
+	
+	@Test
+	public void selectWordTest() {
+		// Se guarda una palabra aleatoria.
+		Word randomWord = sut.selectRandomWord();
+		
+		// Se comprueba que el diccionario contiene la palabra anterior.
+		assert(sut.dictionary.contains(randomWord.getWord()));
+	}
 	
 	
 	/**
 	 * Método de prueba que comienza una partida.
 	 */
-//	@Test
-//	public void startGame() {
-//		
-//		Game game = new Game();
-//
-//		Mockito.when(mockedGameRepo.findGameById(Mockito.anyLong())).thenReturn(mockedGame);
-//		game = mockedGameRepo.findGameById(Mockito.anyLong());
-//
-//		assert (game == mockedGame);
-//	}
-	
-	
-//	public Game startGame(Player player) {
-//
-//		Game newGame = null;
-//
-//		if (player != null) {
-//			// Se crea palabra aleatoria
-//			Word wordToGuess = selectRandomWord();
-//
-//			// Se crea palabra con carácteres (*), de la misma longitud a la anterior
-//			Word wordInProcessToGuess = initWordInProcessToGuess(wordToGuess);
-//
-//			// Se crea partida, incluyendo las palabras anteriores y el jugador pasado por
-//			// parámetro.
-//			newGame = new Game(wordToGuess, wordInProcessToGuess, player);
-//
-//			// Se establece el estado de partida: en progreso.
-//			newGame.setStatus(GameStatus.IN_PROGRESS);
-//
-//			// Se guarda la partida en BBDD
-//			gameRepo.save(newGame);
-//		}
-//
-//		// Se devuelve la partida
-//		return newGame;
-//	}
-	
-	
+	@Test
+	public void startGameTest() {
 
+		Game newGame = null;
+
+		Mockito.when(mockedPlayerRepo.findPlayerById(Mockito.anyLong())).thenReturn(mockedPlayer);
+
+		if (mockedPlayer != null) {
+			// Se crea palabra aleatoria
+			Word wordToGuess = sut.selectRandomWord();
+
+			// Se crea palabra con carácteres (*), de la misma longitud a la anterior
+			Word wordInProcessToGuess = sut.initWordInProcessToGuess(wordToGuess);
+
+			// Se crea partida, incluyendo las palabras anteriores y el jugador pasado por
+			// parámetro.
+			newGame = new Game(wordToGuess, wordInProcessToGuess, mockedPlayer);
+
+			// Se establece el estado de partida: en progreso.
+			newGame.setStatus(GameStatus.IN_PROGRESS);
+
+		}
+
+		Game game = sut.startGame(mockedPlayer);
+
+		assert (!game.equals(newGame));
+	}
+	
+	/**
+	 * Método de prueba que comienza una partida.
+	 */
+	@Test
+	public void startGameTestV2() {
+
+		Mockito.when(mockedPlayerRepo.findPlayerById(Mockito.anyLong())).thenReturn(mockedPlayer);
+		
+		Game game = sut.startGame(mockedPlayer);
+
+		assert (game.getStatus().equals(GameStatus.IN_PROGRESS));
+	}
+
+	
+	@Test
+	public void containsOnlyLettersTest() {
+		assert(sut.containsOnlyLetters("palabra"));
+		assert(!(sut.containsOnlyLetters("L3tr4")));	
+	}
+	
 
 	
 }
-
-
-///**
-//* Test que comprueba el método "getCustomerVisuals" de CustomerService.
-//* Se busca al cliente por nombre y apellido
-//* En la comprobación final no se utiliza sut (servicio)
-//*/
-//@Test
-//public void getCustomerVisualsByNameAndSurname() {		
-//	List<Visual> auxVisuals = null;
-//	
-//	Mockito.when(mockedGameRepo.findCustomerByNameAndSurname(Mockito.any(), Mockito.any())).thenReturn(mockedGame);
-//	
-//	if (!mockedGame.getVisuals().isEmpty()) {
-//		auxVisuals = mockedGame.getVisuals();
-//	}
-//
-//	assert (auxVisuals == mockedGame.getVisuals() || auxVisuals == null);
-//}
-
-
-///**
-//* Test que comprueba el método "getCustomerVisuals" de CustomerService.
-//* Se busca al cliente por id
-//* En la comprobación final se utiliza sut (servicio)
-//*/
-//@Test
-//public void getCustomerVisualsById() {		
-//	List<Visual> auxVisuals = null;
-//	
-//	Mockito.when(mockedGameRepo.findCustomerById(Mockito.anyLong())).thenReturn(mockedGame);
-//	
-//	if (!mockedGame.getVisuals().isEmpty()) {
-//		auxVisuals = mockedGame.getVisuals();
-//	}
-//	
-//	assert (auxVisuals == sut.getCustomerVisuals(mockedGame.getId()) || auxVisuals == null);
-//}
