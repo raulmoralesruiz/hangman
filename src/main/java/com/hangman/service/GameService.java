@@ -161,23 +161,28 @@ public class GameService {
 	 * @param username
 	 * @param ip
 	 * @return GameRound
+	 * @throws Exception 
 	 */
-	public GameRound getGameInfoForPlayer(Long idGame, String username, String ip) {
+	public GameRound getGameInfoForPlayer(Long idGame, String username, String ip) throws Exception {
 
 		// Resultado
 		GameRound result = null;
 
 		// Partida - Juego
 		Game game = null;
-
+		
 		// Se obtiene jugador buscando por nombre de usuario
 		Player player = playerRepo.findPlayerByUsername(username);
 
+		
 		// Si el jugador existe y la IP es correcta
 		if (player != null && ip.equals(player.getIp())) {
 
 			// Se guarda la partida
 			game = gameRepo.findGameById(idGame);
+			
+			// Método que realiza las comprobaciones necesarias
+			attemptChecks(game, player, ip);
 
 			// Se guarda el resultado (información de la ronda)
 			result = new GameRound(game.getWordInProcessToGuess(), game.getLives(), game.getMistakes(), game.getHits(),

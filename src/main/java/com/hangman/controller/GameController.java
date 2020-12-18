@@ -174,17 +174,37 @@ public class GameController {
 		
 		ResponseEntity<?> response = null;		
 
-		GameRound gameRound = gameService.getGameInfoForPlayer(idGame, user, ip);
+		GameRound gameRound = null;
+		try {
+			gameRound = gameService.getGameInfoForPlayer(idGame, user, ip);
+		} catch (Exception e) {
+			String error = e.getMessage();
+			response = ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+		}
 		
 		if (gameRound != null) {
 			response = ResponseEntity.status(HttpStatus.OK).body(gameRound);
-		} else {
-			response = ResponseEntity.status(HttpStatus.NOT_FOUND).body("ERROR. No se han podido obtener los datos de la partida.");
 		}
 
 		return response;
 	}
 
+	
+	/*
+	 * 	
+	 * GameRound gameRound = null;
+		try {
+			gameRound = gameService.makeWordAttempt(user, idGame, word, ip);
+		} catch (Exception e) {
+			String error = e.getMessage();
+			response = ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+		}
+		
+		if (gameRound != null) {
+			response = ResponseEntity.status(HttpStatus.OK).body(gameRound);
+		}
+
+	 */
 	
 	
 	
